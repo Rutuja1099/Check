@@ -1,0 +1,62 @@
+@startuml
+participant UE
+participant "VPLMN\nAMF" as VPLMN
+participant "HPLMN\nUDM" as HPLMN
+participant "SOR-AF" as SOR
+
+UE -> VPLMN: 1. REGISTRATION REQUEST
+
+note over VPLMN
+2. Registration procedure initiation
+end note
+
+VPLMN --> HPLMN: Nudm_UECM_Registration request
+
+note over HPLMN
+Delete "ME support of SOR-CMCI"
+indicator if NAS registration type is either
+"initial" or "emergency"
+end note
+
+HPLMN --> VPLMN: Nudm_UECM_Registration response
+VPLMN --> HPLMN: Nudm_SDM_Get request
+VPLMN --> UE: REGISTRATION ACCEPT
+
+note over HPLMN
+3a. Decision to send steering of roaming
+information, whether to request ACK from
+the UE, and how to obtain the list of
+preferred PLMN/access technology
+combinations or the secured packet.
+end note
+
+HPLMN --> SOR: 3b. Nsoraf_SoR_Get request
+SOR --> HPLMN: 3c. Nsoraf_SoR_Get response
+
+note over HPLMN
+3d. Securing information
+end note
+
+HPLMN --> VPLMN: 4. Nudm_SDM_Get response
+VPLMN --> HPLMN: 5. Nudm_SDM_Subscribe request
+VPLMN --> UE: 6. REGISTRATION ACCEPT
+
+group 7. Steering of roaming information\nsecurity check
+UE --> VPLMN: REGISTRATION COMPLETE
+end group
+
+group 8. If the security check fails or the \nUE is configured to receive \nsteering of roaming information \nbut did not receive it, then perform PLMN \nselection procedure and end the procedure
+UE --> VPLMN: REGISTRATION COMPLETE
+end group
+
+UE --> VPLMN: 9. REGISTRATION COMPLETE
+VPLMN --> HPLMN: 10. Nudm_SDM_Info request
+HPLMN --> SOR: 10a. Nsoraf_SoR_Info request
+
+note over UE
+11. UE performs PLMN selection
+procedure if higher priority PLMN
+is available
+end note
+
+@enduml
